@@ -24,6 +24,8 @@ from sklearn.metrics import median_absolute_error
 from sklearn.metrics import r2_score
 # Importamos el metodo para obtener los valores de cada atributo del modelo
 from pygam.utils import generate_X_grid
+# Importamos librerias para metricas de clasificación
+from sklearn.metrics import confusion_matrix, classification_report
 
 
 def report_scores_lineal(ytest, yhat):
@@ -383,4 +385,53 @@ def display_partial_dependence(model, X_train, marker = '|', color = 'dodgerblue
         plt.scatter(X_train[name], y_vect, marker=marker, color = 'orange', alpha = .5, s=500)
         # agregamos el nombre del atributo
         plt.title(name)
+        plt.tight_layout()
+
+
+def plot_confusion_matrix(y_test, y_hat, classes_labels):
+    """
+    Descripción: Se despliega graficamente la matriz de confusión
+    Entrada:
+        y_test, Vector con las clases reales
+        y_hat, Vector con las clases predichas
+        classes_labels, Etiquetas de las clases
+    Salida:
+        void
+    Version: 1
+    Date: 08/03/2019
+    """
+    tmp_confused = confusion_matrix(y_test, y_hat)
+    sns.heatmap(tmp_confused, annot=True, cbar=False, xticklabels=classes_labels,
+                yticklabels=classes_labels, cmap='Greens', fmt=".1f")
+    plt.xlabel('Classes on testing data')
+    plt.ylabel('Predicted classes on training')
+    plt.grid(False)
+
+
+def plot_class_report(y_test, y_hat, classes_labels):
+    """
+    Descripción: Se despliega gráficamente el reporte de classification_report
+    Entrada:
+        y_test, Vector con las clases reales
+        y_hat, Vector con las clases predichas
+        classes_labels, Etiquetas de las clases
+    Salida:
+        void
+    Version: 1
+    Date: 08/03/2019
+    """
+    tmp_report = classification_report(y_test, y_hat, output_dict=True)
+    targets = list(classes_labels)
+    targets.append('average')
+    tmp_report = pd.DataFrame(tmp_report)\
+                    .drop(columns=['weighted avg', 'macro avg'])
+    tmp_report.columns = targets
+    tmp_report = tmp_report.drop(labels='support')
+    tmp_report = tmp_report.drop(columns='average')
+    tmp_report = tmp_report.T
+
+    for index, (colname, serie) in enumerate(tmp_report.iteritems()):
+        plt.subplot(3, 1, index + 1)
+        serie.plot(kind = 'barh')
+        plt.title(f"Métrica: {colname}")
         plt.tight_layout()
