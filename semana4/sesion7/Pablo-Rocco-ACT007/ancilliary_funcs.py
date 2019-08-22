@@ -437,17 +437,36 @@ def plot_class_report(y_test, y_hat, classes_labels):
         plt.tight_layout()
 
 
-def plot_importance(fit_model, feat_names):
-    """TODO: Docstring for plot_importance.
-
-    :fit_model: TODO
-    :: TODO
-    :returns: TODO
+def plot_importance(fit_model, feat_names, top = 10):
+    """
+    Descripción: Grafica el nivel de importancia de los atributos en un [fit_model], despliega
+    un listado limitado por el [top] o la cantidad máxima de atributos
+    Entrada:
+        fit_model: Es un objeto de tipo modelo de sklearn, del cual extraemos el atributo feature_importances_
+        feat_names: Lista de String  de los Nombres de los atributos
+        top: límite de despliegue de atributos
+    Salida:
+        void
+    Version: 1
+    Date: 08/22/2019
 
     """
+    # Se obtienen un arreglo con los valores de immportancia de cada atributo
     tmp_importance = fit_model.feature_importances_
-    sort_importance = np.argsort(tmp_importance)[::-1]
-    names = [feat_names[i] for i in sort_importance]
-    plt.title("Feature importance")
-    plt.barh(range(len(feat_names)), tmp_importance[sort_importance])
-    plt.yticks(range(len(feat_names)), names, rotation=0)
+    # Se ordenan los indices de la lista en relación al orden descendente de
+    # los valores de arreglo (importancia de los atributos).
+    sort_index_importance = np.argsort(tmp_importance)[::-1]
+    # Se verifica que el top solicitado no supere la cantidad de atributos, en
+    # caso de que ocurra se fija en la cantidad de atributos
+    if tmp_importance.shape[0] < top:
+        top = tmp_importance.shape[0]
+    # Se seleccionan los indices de los n-top atributos
+    sort_index_importance = sort_index_importance[0:top]
+    # Se seleccionan los nombres de los atributos con los indices antes guardados
+    names = [feat_names[i] for i in sort_index_importance]
+    # Titulo del gráfico
+    plt.title(f"Feature importance - Top {top}")
+    # Se genera un gráfico de barras horizontales
+    plt.barh(range(len(names)), tmp_importance[sort_index_importance].tolist())
+    # Se etiquetan las barras con los nombres de los atributos
+    plt.yticks(range(len(names)), names, rotation=0)
