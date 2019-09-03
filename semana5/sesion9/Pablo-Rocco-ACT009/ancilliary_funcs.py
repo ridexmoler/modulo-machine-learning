@@ -25,7 +25,8 @@ from sklearn.metrics import r2_score
 # Importamos el metodo para obtener los valores de cada atributo del modelo
 from pygam.utils import generate_X_grid
 # Importamos librerias para metricas de clasificación
-from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc
+
 
 
 def report_scores_regressor(ytest, yhat):
@@ -470,3 +471,27 @@ def plot_importance(fit_model, feat_names, top = 10):
     plt.barh(range(len(names)), tmp_importance[sort_index_importance].tolist())
     # Se etiquetan las barras con los nombres de los atributos
     plt.yticks(range(len(names)), names, rotation=0)
+
+def plot_roc(model, X_test, y_test, model_label=None):
+    """
+    Descripción: Grafica el area bajo la curva roc
+    Entrada:
+        model: Es un objeto de tipo modelo de sklearn
+        X_test: Matriz de atributos usados en la prediccion
+        y_test: Vector objetivo con valores reales
+        model_label: String nombre de la etiqueta de la serie
+    Salida:
+        void
+    Version: 1
+    Date: 08/30/2019
+    """
+    tmp_y_pred = model.predict_proba(X_test)[:, 1]
+    false_positive_rates, true_positive_rates, _ = roc_curve(y_test, tmp_y_pred)
+    store_auc = auc(false_positive_rates, true_positive_rates)
+    if model_label is not None:
+        tmp_label = "{}: {}".format(model_label, round(store_auc,3))
+    else:
+        tmp_label = None
+    plt.plot(false_positive_rates, true_positive_rates, label=tmp_label)
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
