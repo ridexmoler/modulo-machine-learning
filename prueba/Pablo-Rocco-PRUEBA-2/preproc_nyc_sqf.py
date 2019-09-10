@@ -106,9 +106,6 @@ def create_suitable_dataframe(df, force_object=[], force_delete=[]):
     df['meters'] = meters.apply(lambda x: float(x) * 0.3048) # Conversión de distanca a sistema metrico (non retarded)
     df['month'] = return_time_string(df['datestop']).apply(lambda x: x.month) # Agregación a solo meses
     
-    ### Calculo de la edad del suspechoso
-    age_individual = return_time_string(df['dob']).apply(lambda x: 2009 - x.year)
-    
     # Filtrar solo mayores de 18 años y menores de 100
     df['age_individual'] = np.where(np.logical_and(df['age'] > 18, df['age'] < 100), df['age'], np.nan)
     proc_df = df.dropna()
