@@ -49,6 +49,7 @@ def create_suitable_dataframe(df, force_object=[], force_delete=[]):
         - force_delete:  lista que contiene los nombres de columnas que se forzarán a eliminar
     returns: 
     """
+    ### Se copia el DataFrame para no afectar el original
     df = df.copy()
     ### Procesamos la eliminación forzada de columnas
     df.drop(columns=force_delete, inplace=True)
@@ -109,6 +110,6 @@ def create_suitable_dataframe(df, force_object=[], force_delete=[]):
     # Filtrar solo mayores de 18 años y menores de 100
     df['age_individual'] = np.where(np.logical_and(df['age'] > 18, df['age'] < 100), df['age'], np.nan)
     proc_df = df.dropna()
-    preserve_vars = suitable_categorical_attributes + ['month', 'meters']
+    preserve_vars = suitable_categorical_attributes + ['age_individual', 'month', 'meters']
     proc_df = proc_df.loc[:, preserve_vars] # Agregar los atributos sintéticos al df
     return proc_df, suitable_categorical_attributes, suitable_numerical_attributes
