@@ -38,40 +38,69 @@ def count_freq(df, selected_columns):
     return {i: df[i].unique().shape[0] for i in selected_columns}
 
 
-def create_suitable_dataframe(df):
-    """TODO: Crea un dataframe apto para entrenamiento de acuerdo a normas básicas de limpieza de datos faltantes,
+def create_suitable_dataframe(df, force_object=[], force_delete=[]):
+    """
+    Descripción: Crea un dataframe apto para entrenamiento de acuerdo a normas básicas de limpieza de datos faltantes,
         transformación de etiquetas nulas en variables categóricas y crea atributos sinteticos de edad del sospechoso
          y conversión de distancia a sistema metrico.
     Argumentos:
-        - df: Un objeto pandas.DataFrame 
+        - df: Un objeto pandas.DataFrame
+        - force_object: lista que contiene los nombres de columnas que se forzarán a ser del tipo objet
+        - force_delete:  lista que contiene los nombres de columnas que se forzarán a eliminar
     returns: 
     """
+    df = df.copy()
+    ### Procesamos la eliminación forzada de columnas
+    df.drop(columns=force_delete, inplace=True)
+
     ### Obtener columnas por tipo de dato
     object_data_type = infer_datatype(df, 'object')
+    # Se agregan atributos forzados a ser objetos, como objetos
+    object_data_type = [objeto for objeto in object_data_type if objeto not in force_object]
+    object_data_type = object_data_type + force_object
+    
+    # Se eliminan atributos forzados a ser objetos
     integer_data_type = infer_datatype(df, 'int')
+    integer_data_type = [objeto for objeto in integer_data_type if objeto not in force_object]
+    
+    # Se eliminan atributos forzados a ser objetos
     float_data_type = infer_datatype(df, 'float')
+    float_data_type = [objeto for objeto in float_data_type if objeto not in force_object]
     
     # Quiero recuperar la lista de valores numericos tambien
     suitable_numerical_attributes = list(integer_data_type) + list(float_data_type)
-    print(suitable_numerical_attributes)
     
+    ### Reemplazo de clases faltantes
+    ### {N: No, Y: Yes, U: Unknown}
+    if 'officrid' in df.columns:
+        df['officrid'] = np.where(df['officrid'] == ' ', 'N', 'Y')
+    if 'offshld' in df.columns:
+        df['offshld'] = np.where(df['offshld'] == ' ', 'N', 'Y')
+    if 'sector' in df.columns:
+        df['sector'] = np.where(df['sector'] == ' ', 'U', df['sector'])
+    if 'trhsloc' in df.columns:
+        df['trhsloc'] = np.where(df['trhsloc'] == ' ', 'U', df['trhsloc'])
+    if 'beat' in df.columns:
+        df['beat'] = np.where(df['beat'] == ' ', 'U', df['beat'])
+    if 'offverb' in df.columns:
+        df['offverb'] = np.where(df['offverb'] == ' ', 'N', 'Y')
+    
+    # Se agrega caso ya que no se estaba considerando
+    if 'dettypcm' in df.columns:
+        df['dettypcm'] = np.where(df['dettypcm'] == ' ', 'CM', df['dettypcm'])
+    if 'linecm' in df.columns:
+        df['linecm'] = np.where(df['linecm'] == ' ', '1', df['linecm'])
+    if 'addrtyp' in df.columns:
+        df['addrtyp'] = np.where(df['addrtyp'] == ' ', 'L', df['addrtyp'])
+
     ### Contar la cantidad de clases en el caso de las var. categóricas y frecuencia de valores para las numéricas
     object_unique_vals = count_freq(df, object_data_type)
     int_unique_vals = count_freq(df, integer_data_type)
     float_unique_vals = count_freq(df, float_data_type)
-    
+
     ### Selección de atributos categoricos que cumplen con características deseadas
     suitable_categorical_attributes = dict(filter(lambda x: x[1] < 100 and x[1] >= 2, object_unique_vals.items()))
     suitable_categorical_attributes = list(suitable_categorical_attributes.keys())
-
-    ### Reemplazo de clases faltantes
-    ### {N: No, Y: Yes, U: Unknown}
-    df['officrid'] = np.where(df['officrid'] == ' ', 'N', 'Y')
-    df['offshld'] = np.where(df['offshld'] == ' ', 'N', 'Y')
-    df['sector'] = np.where(df['sector'] == ' ', 'U', df['sector'])
-    df['trhsloc'] = np.where(df['trhsloc'] == ' ', 'U', df['trhsloc'])
-    df['beat'] = np.where(df['beat'] == ' ', 'U', df['beat'])
-    df['offverb'] = np.where(df['offverb'] == ' ', 'N', 'Y')
     
     meters = df['ht_feet'].astype(str) + '.' + df['ht_inch'].astype(str)
     df['meters'] = meters.apply(lambda x: float(x) * 0.3048) # Conversión de distanca a sistema metrico (non retarded)
@@ -79,14 +108,10 @@ def create_suitable_dataframe(df):
     
     ### Calculo de la edad del suspechoso
     age_individual = return_time_string(df['dob']).apply(lambda x: 2009 - x.year)
+    
     # Filtrar solo mayores de 18 años y menores de 100
     df['age_individual'] = np.where(np.logical_and(df['age'] > 18, df['age'] < 100), df['age'], np.nan)
     proc_df = df.dropna()
     preserve_vars = suitable_categorical_attributes + ['month', 'meters']
     proc_df = proc_df.loc[:, preserve_vars] # Agregar los atributos sintéticos al df
     return proc_df, suitable_categorical_attributes, suitable_numerical_attributes
-
-
-
-
-
