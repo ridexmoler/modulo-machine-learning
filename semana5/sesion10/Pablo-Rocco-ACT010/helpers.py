@@ -20,21 +20,22 @@ def plot_classification_report(y_true, y_hat):
 
     """
     # process string and store in a list
+ 
     report = classification_report(y_true, y_hat).split()
     # keep values
-    report = [i for i in report if i not in ['precision', 'recall', 'f1-score', 'support', 'avg']]
+    report2 = [i for i in report if i not in ['precision', 'recall', 'f1-score', 'support', 'avg']]
     # transfer to a DataFrame
-    report = pd.DataFrame(np.array(report).reshape(len(report) // 5, 5))
+    report3 = pd.DataFrame(np.array(report2)[:10].reshape(2, 5))
     # asign columns labels
-    report.columns = ['idx', 'prec', 'rec', 'f1', 'n']
+    report3.columns = ['idx', 'prec', 'rec', 'f1', 'n']
     # preserve class labels
-    class_labels = report.iloc[:np.unique(y_true).shape[0]].pop('idx').apply(int)
+    class_labels = report3.iloc[:np.unique(y_true).shape[0]].pop('idx').apply(int)
     # separate values
-    class_report = report.iloc[:np.unique(y_true).shape[0], 1:4]
+    class_report = report3.iloc[:np.unique(y_true).shape[0], 1:4]
     # convert from str to float
     class_report = class_report.applymap(float)
     # convert to float average report
-    average_report = report.iloc[-1, 1: 4].apply(float)
+    average_report = report3.iloc[-1, 1: 4].apply(float)
 
     colors = ['dodgerblue', 'tomato', 'purple', 'orange']
 
