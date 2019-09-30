@@ -495,3 +495,43 @@ def plot_roc(model, X_test, y_test, model_label=None):
     plt.plot(false_positive_rates, true_positive_rates, label=tmp_label)
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
+    
+def train_test_over_params(model, params, X_train, X_test, y_train, y_test):
+    """TODO: Docstring for train_test_over_params.
+
+    :model: TODO
+    :params: TODO
+    :X_train: TODO
+    :X_test: TODO
+    :y_train: TODO
+    :y_test: TODO
+    :returns: TODO
+
+    """
+    tmp_train, tmp_test = [], []
+    values = list(params.values())[0]
+    hyperparam = str(list(params.keys())[0])
+
+
+    for i in values:
+        params_spec = {hyperparam: i}
+        tmp_model = model.set_params(**params_spec).fit(X_train, y_train)
+        tmp_train.append(mean_squared_error(y_train, tmp_model.predict(X_train)))
+        tmp_test.append(mean_squared_error(y_test, tmp_model.predict(X_test)))
+
+        # if model is DecisionTreeRegressor():
+            # # tmp_train.append(mean_squared_error(y_train, tmp_model.predict(X_train)))
+            # # tmp_test.append(mean_squared_error(y_test, tmp_model.predict(X_test)))
+        # elif model is DecisionTreeClassifier():
+            # # tmp_train.append(roc_auc_score(y_train, tmp_model.predict(X_train)))
+            # # tmp_test.append(roc_auc_score(y_test, tmp_model.predict(X_test)))
+
+
+    plt.plot(values, tmp_train, 'o-',color='dodgerblue', label='Train')
+    plt.plot(values, tmp_test,'o-', color='tomato', label='Test')
+    plt.legend()
+    plt.title(hyperparam)
+    # tmp_best_score = tmp_test[np.max(tmp_test)]
+    # plt.axvline(tmp_best_score, color='slategrey',
+                # linestyle='--',
+                # label="Best {} on test: {}".format(hyperparam, round(tmp_best_score, 3)))

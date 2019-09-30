@@ -116,3 +116,4 @@ def plot_roc(model, y_true, X_test, model_label=None):
     plt.plot(false_positive_rates, true_positive_rates, label=tmp_label)
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
+
