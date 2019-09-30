@@ -113,3 +113,30 @@ def create_suitable_dataframe(df, force_object=[], force_delete=[]):
     preserve_vars = suitable_categorical_attributes + ['age_individual', 'month', 'meters']
     proc_df = proc_df.loc[:, preserve_vars] # Agregar los atributos sintéticos al df
     return proc_df, suitable_categorical_attributes, suitable_numerical_attributes
+
+
+def binarize_column_by_value(df_origin, column_name, values, drop_first=True, drop_origin = True):
+    """
+    Descripción: Se recibe un DataFrame [df] y se binariza las columnas listadas en [columns]
+    usando la lista de valores ingresados en values
+    Entrada: 
+        df, DataFrame que contiene los datos, debe contener las columnas [columns]
+        column_name, List que almacena el nombre de las columnas que serán binarizadas
+    retorno:
+        df, Dataframe recibido por parámetro y que adiciona las nuevas columnas binarizadas 
+    """
+    
+    df = df_origin.copy()
+
+    if drop_first is True:
+        values.pop(0)
+
+    for val in values:
+        df[column_name+'_' + val] = 0
+        for index, val_x  in df[column_name].items():
+            if val_x == val:
+                df[column_name+'_' + val][index] = 1
+    
+    if drop_origin is True:
+        df.drop(columns = column_name)
+    return df
